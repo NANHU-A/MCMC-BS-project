@@ -1,0 +1,22 @@
+# MCMC-BS项目依赖
+# 基础依赖
+numpy>=1.21.0
+scipy>=1.7.0
+matplotlib>=3.5.0
+
+# 可选依赖（用于高级功能）
+pyyaml>=6.0          # 配置文件支持
+tqdm>=4.64.0         # 进度条显示
+pandas>=1.4.0        # 数据分析
+seaborn>=0.11.0      # 高级可视化
+
+# 开发依赖
+pytest>=7.0.0        # 测试框架
+black>=22.0.0        # 代码格式化
+mypy>=0.950          # 类型检查
+flake8>=4.0.0        # 代码检查
+
+# 安装命令:
+# pip install -r requirements.txt
+# 或仅安装基础依赖:
+# pip install numpy scipy matplotlib
