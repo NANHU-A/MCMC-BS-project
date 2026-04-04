@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.stats import norm
+from scipy.special import logsumexp
 import time
 
 
@@ -82,34 +83,28 @@ class MultipleTryMetropolis:
         proposal_std = float(self.proposal_std)
 
         for i in range(n_samples + burn_in):
-            proposals = current_x + np.random.randn(k) * proposal_std
-            proposal_log_pdfs = np.array([self.log_pdf_func(p) for p in proposals])
-
-            max_log_pdf = np.max(proposal_log_pdfs)
-            weights = np.exp(proposal_log_pdfs - max_log_pdf)
-            weights = weights / np.sum(weights)
-
-            selected_idx = np.random.choice(k, p=weights)
-            selected_x = proposals[selected_idx]
-            selected_log_pdf = proposal_log_pdfs[selected_idx]
-
-            auxiliary_x = current_x + np.random.randn() * proposal_std
-            auxiliary_log_pdf = self.log_pdf_func(auxiliary_x)
-
-            backup_weights = weights.copy()
-            backup_weights[selected_idx] = 0
-            if np.sum(backup_weights) > 0:
-                backup_weights = backup_weights / np.sum(backup_weights)
-                backup_idx = np.random.choice(k, p=backup_weights)
-            else:
-                backup_idx = selected_idx
-
-            backup_x = proposals[backup_idx]
-            backup_log_pdf = proposal_log_pdfs[backup_idx]
-
-            log_accept_ratio = (
-                selected_log_pdf + backup_log_pdf - current_log_pdf - auxiliary_log_pdf
+            forward_proposals = current_x + np.random.randn(k) * proposal_std
+            forward_log_pdf = np.array(
+                [self.log_pdf_func(p) for p in forward_proposals]
             )
+
+            forward_weights = np.exp(forward_log_pdf - np.max(forward_log_pdf))
+            forward_probs = forward_weights / np.sum(forward_weights)
+
+            selected_idx = np.random.choice(k, p=forward_probs)
+            selected_x = forward_proposals[selected_idx]
+            selected_log_pdf = forward_log_pdf[selected_idx]
+
+            backward_proposals = np.zeros(k)
+            backward_log_pdf = np.zeros(k)
+            backward_proposals[0] = current_x
+            backward_log_pdf[0] = current_log_pdf
+            if k > 1:
+                draws = selected_x + np.random.randn(k - 1) * proposal_std
+                backward_proposals[1:] = draws
+                backward_log_pdf[1:] = np.array([self.log_pdf_func(p) for p in draws])
+
+            log_accept_ratio = logsumexp(forward_log_pdf) - logsumexp(backward_log_pdf)
 
             if np.log(np.random.rand()) < log_accept_ratio:
                 current_x = selected_x
