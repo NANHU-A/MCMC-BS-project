@@ -1,210 +1,138 @@
-# 多提案MCMC算法在期权定价中的效率实验
+# 多提案 MCMC 在 Black-Scholes 期权定价中的效率研究
 
-## 项目概述
+## 项目简介
 
-本项目基于开题报告的研究思路，通过数值实验复现了**多提案马尔可夫链蒙特卡洛（Multi-Proposal MCMC, MP-MCMC）**算法在经典金融模型——**Black-Scholes期权定价**中的效率表现。
+本项目对应本科毕业论文终稿（`results/overleaf/MCMC_BS_project_4.2.pdf`），研究主题为：在 Black-Scholes 框架下比较单提案 RWMH 与多提案 MTM 的统计效率与计算成本权衡。项目目前已完成代码修复、实验复现实证、论文定稿与 XeLaTeX 导出流程。
 
-## 研究背景
+核心结论：
+- MTM 在 IAT/ESS 等统计效率指标上优于 RWMH；
+- 串行实现下，提案数 K 增大导致运行时间显著上升；
+- 在低维且可直接采样场景，Monte Carlo 仍是更高效基线。
 
-### 核心问题
-- **单提案算法**（如Random Walk Metropolis-Hastings, RWMH）：每次迭代仅产生一个候选样本
-- **多提案算法**（如Multiple-Try Metropolis, MTM）：每次迭代产生K个候选样本，利用权重选择
+## 论文与成果文件
 
-### 理论预期
-根据Pozza & Zanella (2025)的研究，多提案MCMC的加速比理论上界为：
-- **O(K)**：线性增长（理想情况）
-- **O(log K)**：对数增长（实际常见情况）
+- 论文 PDF（当前最终稿）：`results/overleaf/MCMC_BS_project_4.2.pdf`
+- 论文 Markdown 终稿：`results/opencode/本科毕业论文-终稿.md`
+- 研究报告版：`本科毕业论文-研究报告.md`
+- 答辩口径：`答辩口径-详细版.md`
+- Overleaf 主模板：`overleaf_main_xelatex.txt`
+- Overleaf 正文（LaTeX body）：`overleaf_xelatex_code.txt`
+- 单文件 XeLaTeX：`main_xelatex_rigorous.tex`
 
-## 实验设计
+## 模型与实验设置
 
-### Black-Scholes模型参数
+### Black-Scholes 参数
+
 | 参数 | 符号 | 取值 |
-|------|------|------|
-| 初始股价 | S₀ | 100 |
-| 行权价 | K | 100 |
-| 到期时间 | T | 1年 |
-| 无风险利率 | r | 5% |
-| 波动率 | σ | 20% |
+|---|---|---:|
+| 初始股价 | $S_0$ | 100 |
+| 行权价 | $K$ | 100 |
+| 到期时间 | $T$ | 1 |
+| 无风险利率 | $r$ | 0.05 |
+| 波动率 | $\sigma$ | 0.2 |
 
-### 对比算法
-1. **RWMH** (Random Walk Metropolis-Hastings)：标准单提案算法
-2. **MTM-K** (Multiple-Try Metropolis)：多提案算法，K为提案数量
+### 主要实验配置
 
-### 评估指标
-- **计算时间**：算法运行耗时
-- **接受率**：候选样本被接受的比率
-- **自相关时间(IAT)**：样本间相关性的度量，越小越好
-- **有效样本量(ESS)**：n_samples / IAT
-- **加速比**：RWMH时间 / MTM时间
+- 主比较：`n_samples=20000`, `burn_in=n_samples//4`, `proposal_std=0.3`, `seed=42`
+- 速度分析：`seed=42`
+- 基线比较（MC vs MCMC）：`n_samples=50000`, `burn_in=n_samples//4`, `seed=42`
+- 重复实验：`seed=42,43,44,45,46`
 
-## 构造思路
+解析解（Analytical Price）：`10.450584`
 
-### 1. 期权定价 → 抽样问题
+## 最新核心结果（与论文终稿一致）
 
-在风险中性测度下，看涨期权价格可表示为：
+### 1) 主比较结果（seed=42）
 
-```
-C = e^(-rT) * E[(S_T - K)^+]
-```
+| 方法 | 价格 | 绝对误差 | 接受率 | 时间(s) | IAT | ESS |
+|---|---:|---:|---:|---:|---:|---:|
+| RWMH | 10.7591 | 0.3085 | 59.21% | 0.88 | 10.0 | 2000 |
+| MTM-K2 | 10.2750 | 0.1756 | 72.15% | 5.79 | 6.0 | 3333 |
+| MTM-K4 | 10.3573 | 0.0933 | 80.40% | 9.25 | 5.0 | 4000 |
+| MTM-K8 | 10.5741 | 0.1235 | 84.98% | 15.91 | 5.0 | 4000 |
 
-通过对数价格 `x = ln(S_T)` 抽样，将问题转化为从对数正态分布抽样。
+### 2) 速度分析（seed=42）
 
-### 2. 算法实现
+| K | 时间(s) | IAT | 时间速度比 $t_{RWMH}/t_K$ | IAT 改善倍数 $\tau_{RWMH}/\tau_K$ |
+|---:|---:|---:|---:|---:|
+| 1 (RWMH) | 1.023 | 8.0 | 1.00x | 1.00x |
+| 2 | 5.662 | 6.0 | 0.18x | 1.33x |
+| 4 | 9.090 | 5.0 | 0.11x | 1.60x |
+| 8 | 15.961 | 5.0 | 0.06x | 1.60x |
 
-**RWMH算法：**
-```python
-# 核心步骤：
-1. 从当前状态 x 开始
-2. 建议新状态 x' = x + ε, ε ~ N(0, σ²)
-3. 计算接受比 α = π(x')/π(x)
-4. 以 min(α, 1) 的概率接受 x'
-```
+### 3) Monte Carlo 基线（seed=42）
 
-**MTM算法：**
-```python
-# 核心步骤：
-1. 从当前状态 x 开始
-2. 生成 K 个候选样本
-3. 计算权重并根据权重选择
-4. 辅助采样与接受-拒绝准则
-```
+| 方法 | 价格 | 绝对误差 | 标准误 | 时间(s) | IAT | ESS |
+|---|---:|---:|---:|---:|---:|---:|
+| Monte Carlo | 10.4462 | 0.0044 | 0.0657 | 0.0010 | - | - |
+| MCMC (RWMH) | 10.4643 | 0.0137 | - | 2.48 | 8.0 | 6250 |
 
-## 实验结果
+### 4) 5 次重复实验（42~46）摘要
 
-### 基础对比 (样本数=20,000)
+- RWMH 价格均值±std：`10.6913 ± 0.3077`
+- MTM-K2 价格均值±std：`10.5253 ± 0.1922`
+- MTM-K4 价格均值±std：`10.5119 ± 0.2266`
+- MTM-K8 价格均值±std：`10.4107 ± 0.1678`
 
-| 算法 | 期权价格 | 误差 | 接受率 | 时间(s) | IAT | ESS |
-|------|----------|------|--------|---------|-----|-----|
-| 解析解 | 10.4506 | - | - | - | - | - |
-| RWMH | 10.4107 | 0.04 | 59.3% | 1.16 | 8.0 | 2500 |
-| MTM-K2 | 10.0427 | 0.41 | 51.9% | 4.65 | 8.0 | 2500 |
-| MTM-K4 | 8.7371 | 1.71 | 76.5% | 6.80 | 4.0 | 5000 |
+对应数据文件：`docs/superpowers/notes/repeatability_all_methods_5seeds.csv`
 
-### 加速比分析
+## 代码结构
 
-| K值 | 时间(s) | IAT | 时间加速比 | IAT降低倍数 |
-|-----|---------|-----|------------|-------------|
-| 1 (RWMH) | 1.16 | 8.0 | 1.0x | 1.0x |
-| 2 | 4.65 | 8.0 | 0.25x | 1.0x |
-| 4 | 6.80 | 4.0 | 0.17x | 2.0x |
-| 8 | 11.28 | 3.0 | 0.10x | 2.7x |
-
-### Monte Carlo基准对比
-
-| 方法 | 价格 | 误差 | 标准误 | 时间 |
-|------|------|------|--------|------|
-| Monte Carlo | 10.4462 | 0.0044 | 0.0657 | 0.0006s |
-| MCMC (RWMH) | 10.4643 | 0.0137 | - | 2.90s |
-
-**结论**：对于简单的Black-Scholes模型，直接Monte Carlo抽样更高效；MCMC的价值在于处理复杂分布。
-
-## 关键发现
-
-### 1. IAT显著降低
-- RWMH: IAT ≈ 8
-- MTM(K=4): IAT ≈ 4 (降低50%)
-- MTM(K=8): IAT ≈ 3 (降低62.5%)
-
-### 2. 有效样本量提升
-- RWMH: ESS ≈ 2500
-- MTM(K=4): ESS ≈ 5000 (2倍)
-- MTM(K=8): ESS ≈ 6667 (2.7倍)
-
-### 3. 时间效率权衡
-- Python串行实现导致计算时间增加
-- K倍提案数导致O(K)时间复杂度
-- 实际加速比 < 1（时间开销大于IAT改善）
-
-### 4. 接受率改善
-- RWMH: ~59%
-- MTM(K=4): ~76%
-- MTM(K=8): ~82%
-
-## 可视化结果
-
-![综合分析](comprehensive_analysis.png)
-![加速比曲线](speedup_curves.png)
-
-## 代码优化
-
-### 1. 算法优化
-- 使用向量化操作替代循环
-- 预计算常数减少重复计算
-- 优化权重计算逻辑
-
-### 2. 诊断工具
-- 自相关函数(ACF)计算
-- 积分自相关时间(IAT)估计
-- 有效样本量(ESS)计算
-- 收敛诊断（累积均值图）
-
-## 代码说明
-
-### 文件结构
-```
+```text
 MCMC-BS-project/
-├── README.md                       # 项目说明文档
-├── comprehensive_analysis.png      # 综合分析图
-├── speedup_curves.png             # 加速比曲线图
-└── src/
-    ├── mcmc_option_pricing.py     # 基础算法实现
-    ├── mcmc_optimized.py          # 优化算法实现
-    ├── visualization.py           # 基础可视化
-    └── visualization_optimized.py # 优化可视化
+├── README.md
+├── src/
+│   ├── mcmc_option_pricing.py      # 基础 BS + RWMH/MTM
+│   ├── mcmc_optimized.py           # 主实验、速度分析、基线比较
+│   ├── mcmc_advanced.py            # LB-MTM、并行链、Geweke
+│   ├── visualization.py
+│   └── visualization_optimized.py  # 论文图表生成
+├── docs/superpowers/notes/
+│   ├── run_comparison_seed42_full.csv
+│   ├── speedup_table_from_seed42.csv
+│   ├── repeatability_all_methods_5seeds.csv
+│   └── ...
+├── results/overleaf/MCMC_BS_project_4.2.pdf
+└── results/opencode/本科毕业论文-终稿.md
 ```
 
-### 运行方式
+## 运行方式
+
+在项目根目录执行：
 
 ```bash
-cd src
-python mcmc_optimized.py           # 运行优化实验
-python visualization_optimized.py # 生成可视化图表
+python src/mcmc_optimized.py
+python src/mcmc_advanced.py
+python src/visualization_optimized.py
 ```
 
-## 结论与讨论
+生成的典型图像：
+- `comprehensive_analysis.png`
+- `speedup_curves.png`
+- `mcmc_comparison.png`
 
-### 主要结论
+## XeLaTeX / Overleaf 导出
 
-1. **MTM有效降低样本相关性**：IAT从8降至3，验证了多提案算法的理论特性
+### 推荐上传到 Overleaf 的文件
 
-2. **ESS显著提升**：从2500提升至6667，有效样本量增加2.7倍
+1. `overleaf_main_xelatex.txt`（重命名为 `main.tex`）
+2. `overleaf_xelatex_code.txt`
+3. 所有图片资源（`*.png`）
 
-3. **接受率大幅提高**：从59%提升至82%
+### 正文转换脚本
 
-4. **时间开销限制实际加速**：
-   - Python串行实现
-   - K倍提案数导致O(K)时间
-   - 理论加速无法完全体现
+- `scripts/build_xelatex_body.py`
 
-5. **MC vs MCMC**：
-   - 简单问题：MC更高效
-   - 复杂分布：MCMC优势明显
+该脚本会从 `results/opencode/本科毕业论文-终稿.md` 生成 `overleaf_xelatex_code.txt`，并自动处理目录渲染所需结构。
 
-### 与理论预期对比
+## 参考文献（项目核心）
 
-| 理论预期 | 实际表现 | 原因 |
-|----------|----------|------|
-| O(K) 线性加速 | 时间加速 < 1 | Python串行实现开销 |
-| IAT随K降低 | IAT: 8→3 | 符合预期 |
-| 接受率提升 | 59%→82% | 符合预期 |
-
-### 应用建议
-
-- **低维简单问题**：直接使用Monte Carlo或RWMH
-- **高维复杂问题**：MTM的多提案策略更有效
-- **GPU/并行环境**：可充分发挥MTM的并行潜力
-- **实际应用**：需权衡计算资源与采样效率
-
-## 进一步工作
-
-1. 在GPU上实现MTM以验证理论加速极限
-2. 应用于更复杂的金融模型（随机波动率模型、亚式期权）
-3. 探索自适应K值选择策略
-4. 实现并行多链MCMC
-
-## 参考文献
-
-1. Pozza, F., & Zanella, G. (2025). On the fundamental limitations of multi-proposal Markov chain Monte Carlo algorithms. *Biometrika*.
-2. Liu, J. S. (2004). *Monte Carlo Strategies in Scientific Computing*. Springer.
-3. Glasserman, P. (2003). *Monte Carlo Methods in Financial Engineering*. Springer.
-4. Hastings, W. K. (1970). Monte Carlo sampling methods using Markov chains and their applications. *Biometrika*.
+1. Black, F., & Scholes, M. (1973). The pricing of options and corporate liabilities.
+2. Merton, R. C. (1973). Theory of rational option pricing.
+3. Metropolis, N., et al. (1953). Equation of state calculations by fast computing machines.
+4. Hastings, W. K. (1970). Monte Carlo sampling methods using Markov chains.
+5. Liu, J. S. (2004). Monte Carlo Strategies in Scientific Computing.
+6. Glasserman, P. (2003). Monte Carlo Methods in Financial Engineering.
+7. Robert, C. P., & Casella, G. (2004). Monte Carlo Statistical Methods.
+8. Pozza, F., & Zanella, G. (2025). On the fundamental limitations of multi-proposal MCMC algorithms.
+9. Neal, R. M. (2011). MCMC using Hamiltonian dynamics.
