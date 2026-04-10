@@ -3,9 +3,10 @@ import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-md_path = ROOT / "本科毕业论文-终稿.md"
-tmp_md_path = ROOT / "docs" / "superpowers" / "notes" / "_tmp_no_manual_toc.md"
-tex_body_path = ROOT / "overleaf_xelatex_code.txt"
+base_path = ROOT / "results" / "opencode"
+md_path = base_path / "本科毕业论文-终稿.md"
+tmp_md_path = base_path / "_tmp_no_manual_toc.md"
+tex_body_path = base_path / "overleaf_xelatex_code.txt"
 
 
 def strip_manual_toc(text: str) -> str:
@@ -24,7 +25,7 @@ def convert_md_to_latex(src: Path, dst: Path) -> None:
             "pandoc",
             str(src),
             "--from",
-            "gfm",
+            "gfm+implicit_figures",
             "--to",
             "latex",
             "-o",
@@ -40,14 +41,34 @@ def transform_latex_body(text: str) -> str:
 
     title = "多提案 MCMC 算法在 Black-Scholes 期权定价中的效率研究"
     inserted_toc = False
+    inserted_roman = False
 
     for line in lines:
+        if "\\includegraphics[" in line and "alt={" in line:
+            line = re.sub(r",\s*alt=\{[^}]*\}", "", line)
+
         s = line.strip()
 
         if s == title:
             continue
 
+        if s == "封面":
+            out.append(r"\clearpage")
+            out.append(r"\section*{封面}")
+            out.append(r"\thispagestyle{empty}")
+            continue
+
+        if s == "原创性声明和版权使用授权书":
+            out.append(r"\clearpage")
+            out.append(r"\section*{原创性声明和版权使用授权书}")
+            out.append(r"\thispagestyle{empty}")
+            continue
+
         if s == "中文摘要":
+            if not inserted_roman:
+                out.append(r"\clearpage")
+                out.append(r"\pagenumbering{Roman}")
+                inserted_roman = True
             out.append(r"\section*{中文摘要}")
             out.append(r"\addcontentsline{toc}{section}{中文摘要}")
             continue
@@ -63,6 +84,7 @@ def transform_latex_body(text: str) -> str:
                 out.append(r"\clearpage")
                 out.append(r"\tableofcontents")
                 out.append(r"\clearpage")
+                out.append(r"\pagenumbering{arabic}")
                 inserted_toc = True
             out.append(rf"\section{{第{m_ch.group(1)}章 {m_ch.group(2)}}}")
             continue

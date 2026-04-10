@@ -88,7 +88,7 @@ RWMH 实现简单，但样本相关性较高时会降低有效样本产出。多
 
 \begin{figure}
 \centering
-\pandocbounded{\includegraphics[keepaspectratio,alt={图1-1 研究技术路线示意图}]{mcmc_comparison.png}}
+\pandocbounded{\includegraphics[keepaspectratio]{mcmc_comparison.png}}
 \caption{图1-1 研究技术路线示意图}
 \end{figure}
 
@@ -305,7 +305,7 @@ ESS=\frac{N}{\tau_{int}}.
 
 \begin{figure}
 \centering
-\pandocbounded{\includegraphics[keepaspectratio,alt={图2-1 ACF 对比示意}]{comprehensive_analysis.png}}
+\pandocbounded{\includegraphics[keepaspectratio]{comprehensive_analysis.png}}
 \caption{图2-1 ACF 对比示意}
 \end{figure}
 
@@ -349,7 +349,7 @@ ESS=\frac{N}{\tau_{int}}.
 
 \begin{figure}
 \centering
-\pandocbounded{\includegraphics[keepaspectratio,alt={图3-1 源码模块映射图}]{speedup_analysis.png}}
+\pandocbounded{\includegraphics[keepaspectratio]{speedup_analysis.png}}
 \caption{图3-1 源码模块映射图}
 \end{figure}
 
@@ -600,19 +600,19 @@ MCMC (RWMH) & 10.4643 & 0.0137 & - & 2.48 & 8.0 & 6250 & 日志未打印 \\
 
 \begin{figure}
 \centering
-\pandocbounded{\includegraphics[keepaspectratio,alt={图4-1 综合分析图}]{comprehensive_analysis.png}}
+\pandocbounded{\includegraphics[keepaspectratio]{comprehensive_analysis.png}}
 \caption{图4-1 综合分析图}
 \end{figure}
 
 \begin{figure}
 \centering
-\pandocbounded{\includegraphics[keepaspectratio,alt={图4-2 加速曲线图}]{speedup_curves.png}}
+\pandocbounded{\includegraphics[keepaspectratio]{speedup_curves.png}}
 \caption{图4-2 加速曲线图}
 \end{figure}
 
 \begin{figure}
 \centering
-\pandocbounded{\includegraphics[keepaspectratio,alt={图4-3 MCMC 比较图}]{mcmc_comparison.png}}
+\pandocbounded{\includegraphics[keepaspectratio]{mcmc_comparison.png}}
 \caption{图4-3 MCMC 比较图}
 \end{figure}
 
