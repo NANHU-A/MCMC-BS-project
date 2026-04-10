@@ -16,6 +16,7 @@
 \usepackage{tocloft}
 \usepackage{fancyhdr}
 \usepackage{hyperref}
+\usepackage{xurl}
 
 \IfFontExistsTF{Times New Roman}{\setmainfont{Times New Roman}}{\setmainfont{TeX Gyre Termes}}
 \IfFontExistsTF{SimSun}{\setCJKmainfont{SimSun}}{\IfFontExistsTF{Noto Serif CJK SC}{\setCJKmainfont{Noto Serif CJK SC}}{\setCJKmainfont{FandolSong-Regular}}}
@@ -27,9 +28,15 @@
 \setlength{\parskip}{0pt}
 \setlength{\headheight}{15pt}
 \setkeys{Gin}{width=0.82\textwidth,keepaspectratio}
+\setlength{\emergencystretch}{3em}
+\sloppy
 
 \captionsetup{font=small,labelfont=bf}
 \renewcommand{\arraystretch}{1.15}
+\renewcommand{\thefigure}{\arabic{section}-\arabic{figure}}
+\renewcommand{\thetable}{\arabic{section}-\arabic{table}}
+\numberwithin{equation}{section}
+\renewcommand{\theequation}{\arabic{section}-\arabic{equation}}
 
 % Chapter/section title style (本科论文常见样式)
 \titleformat{\section}{\centering\bfseries\zihao{-3}}{}{0em}{}
@@ -51,8 +58,9 @@
 
 \pagestyle{fancy}
 \fancyhf{}
+\fancyhead[C]{\zihao{5}武汉大学本科毕业论文（设计）}
 \fancyfoot[C]{\thepage}
-\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0pt}
 
 \hypersetup{hidelinks}

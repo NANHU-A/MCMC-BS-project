@@ -1,4 +1,19 @@
 
+\clearpage
+\section*{封面}
+\thispagestyle{empty}
+
+（按《武汉大学本科毕业论文（设计）书写印制规范（2024
+年版）》使用学校统一封面，单独成页打印。）
+
+\clearpage
+\section*{原创性声明和版权使用授权书}
+\thispagestyle{empty}
+
+（按学校模板单独成页，需作者与指导教师手写签名后装订入论文前置部分。）
+
+\clearpage
+\pagenumbering{Roman}
 \section*{中文摘要}
 \addcontentsline{toc}{section}{中文摘要}
 
@@ -53,6 +68,7 @@ Carlo; Multiple-Try Metropolis; Effective Sample Size
 \clearpage
 \tableofcontents
 \clearpage
+\pagenumbering{arabic}
 \section{第1章 绪论}
 
 \subsection{1.1 研究背景与意义}
@@ -70,7 +86,11 @@ RWMH 实现简单，但样本相关性较高时会降低有效样本产出。多
 
 图1-1展示本研究的总体技术路线：模型定义、采样算法设计、指标评估与结果解释。
 
+\begin{figure}
+\centering
 \pandocbounded{\includegraphics[keepaspectratio,alt={图1-1 研究技术路线示意图}]{mcmc_comparison.png}}
+\caption{图1-1 研究技术路线示意图}
+\end{figure}
 
 \subsection{1.2 国内外研究现状}
 
@@ -283,7 +303,11 @@ ESS=\frac{N}{\tau_{int}}.
 
 图2-1展示 ACF 随滞后变化的典型对比结果。
 
+\begin{figure}
+\centering
 \pandocbounded{\includegraphics[keepaspectratio,alt={图2-1 ACF 对比示意}]{comprehensive_analysis.png}}
+\caption{图2-1 ACF 对比示意}
+\end{figure}
 
 \subsection{2.5 本章小结}
 
@@ -323,7 +347,11 @@ ESS=\frac{N}{\tau_{int}}.
 
 图3-1给出``源码到论文章节''的映射关系示意。
 
+\begin{figure}
+\centering
 \pandocbounded{\includegraphics[keepaspectratio,alt={图3-1 源码模块映射图}]{speedup_analysis.png}}
+\caption{图3-1 源码模块映射图}
+\end{figure}
 
 \subsection{3.2 核心算法流程伪代码}
 
@@ -570,11 +598,23 @@ MCMC (RWMH) & 10.4643 & 0.0137 & - & 2.48 & 8.0 & 6250 & 日志未打印 \\
   辅助比较图：\texttt{mcmc\_comparison.png}（用于展示方法对比关系）。
 \end{itemize}
 
+\begin{figure}
+\centering
 \pandocbounded{\includegraphics[keepaspectratio,alt={图4-1 综合分析图}]{comprehensive_analysis.png}}
+\caption{图4-1 综合分析图}
+\end{figure}
 
+\begin{figure}
+\centering
 \pandocbounded{\includegraphics[keepaspectratio,alt={图4-2 加速曲线图}]{speedup_curves.png}}
+\caption{图4-2 加速曲线图}
+\end{figure}
 
+\begin{figure}
+\centering
 \pandocbounded{\includegraphics[keepaspectratio,alt={图4-3 MCMC 比较图}]{mcmc_comparison.png}}
+\caption{图4-3 MCMC 比较图}
+\end{figure}
 
 \subsection{4.6 差异来源与有效性讨论}
 
@@ -710,6 +750,12 @@ multi-proposal Markov chain Monte Carlo algorithms{[}J{]}. Biometrika,
 {[}9{]} Neal R M. MCMC using Hamiltonian dynamics{[}M{]}//Brooks S,
 Gelman A, Jones G, Meng X L. Handbook of Markov Chain Monte Carlo. Boca
 Raton: CRC Press, 2011: 113-162.
+
+致谢
+
+在本论文的选题、实现与写作过程中，指导教师在研究方向、方法论与论文结构方面给予了持续、细致的指导与帮助；在实验复现与结论论证阶段，老师对关键问题的纠偏与建议对论文质量提升起到了决定性作用。在此谨致诚挚感谢。
+
+同时，感谢学院与任课教师在本科阶段提供的系统训练，感谢同学在代码测试、文稿校对与学术交流中的支持与建议。本文仍存在不足，恳请各位老师批评指正。
 
 \section{附录}
 
