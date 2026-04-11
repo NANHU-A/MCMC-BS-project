@@ -36,6 +36,7 @@ def convert_md_to_latex(src: Path, dst: Path) -> None:
 
 
 def transform_latex_body(text: str) -> str:
+    text = text.replace(r"\textbackslash newpage", r"\newpage")
     lines = text.splitlines()
     out = []
 
@@ -50,6 +51,10 @@ def transform_latex_body(text: str) -> str:
         s = line.strip()
 
         if s == title:
+            continue
+
+        if s == r"\newpage" or s == "\\newpage":
+            out.append(r"\newpage")
             continue
 
         if s == "封面":
@@ -104,6 +109,8 @@ def transform_latex_body(text: str) -> str:
 
         m_app = re.match(r"^附录([A-Z])\s+(.+)$", s)
         if m_app:
+            if m_app.group(1) == "C":
+                out.append(r"\needspace{8\baselineskip}")
             out.append(rf"\subsection{{附录{m_app.group(1)} {m_app.group(2)}}}")
             continue
 
@@ -121,6 +128,7 @@ def main() -> None:
 
     body = tex_body_path.read_text(encoding="utf-8")
     body = transform_latex_body(body)
+    body = body.replace(r"\begin{figure}", r"\begin{figure}[H]")
     tex_body_path.write_text(body, encoding="utf-8")
 
 

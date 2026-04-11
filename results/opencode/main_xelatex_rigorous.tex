@@ -17,6 +17,8 @@
 \usepackage{fancyhdr}
 \usepackage{hyperref}
 \usepackage{xurl}
+\usepackage{etoolbox}
+\usepackage{needspace}
 
 \IfFontExistsTF{Times New Roman}{\setmainfont{Times New Roman}}{\setmainfont{TeX Gyre Termes}}
 \IfFontExistsTF{SimSun}{\setCJKmainfont{SimSun}}{\IfFontExistsTF{Noto Serif CJK SC}{\setCJKmainfont{Noto Serif CJK SC}}{\setCJKmainfont{FandolSong-Regular}}}
@@ -24,22 +26,30 @@
 \IfFontExistsTF{Consolas}{\setmonofont{Consolas}}{\setmonofont{Latin Modern Mono}}
 
 \setstretch{1.5}
+\zihao{-4}
 \setlength{\parindent}{2em}
 \setlength{\parskip}{0pt}
 \setlength{\headheight}{15pt}
 \setkeys{Gin}{width=0.82\textwidth,keepaspectratio}
 \setlength{\emergencystretch}{3em}
 \sloppy
-\captionsetup{font=small,labelfont=bf}
+\setlength{\tabcolsep}{4pt}
+\clubpenalty=10000
+\widowpenalty=10000
+\displaywidowpenalty=10000
+\captionsetup{font={bf,zihao{5}},labelfont={bf,zihao{5}}}
 \renewcommand{\arraystretch}{1.15}
 \renewcommand{\thefigure}{\arabic{section}-\arabic{figure}}
 \renewcommand{\thetable}{\arabic{section}-\arabic{table}}
 \numberwithin{equation}{section}
 \renewcommand{\theequation}{\arabic{section}-\arabic{equation}}
+\AtBeginEnvironment{longtable}{\zihao{5}}
 
 % Chapter/section title style (本科论文常见样式)
 \titleformat{\section}{\centering\bfseries\zihao{-3}}{}{0em}{}
 \titleformat{\subsection}{\bfseries\zihao{4}}{}{0em}{}
+
+\preto\section{\setcounter{figure}{0}\setcounter{table}{0}\setcounter{equation}{0}}
 
 % TOC style similar to sample image
 \renewcommand{\contentsname}{目\hspace{1em}录}
